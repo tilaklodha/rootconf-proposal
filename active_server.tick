@@ -1,0 +1,23 @@
+var warn = 2
+var crit = 1
+var period = 10m
+var every = 2m
+
+// Dataframe
+var data = batch
+ |query('''SELECT last("active_servers") AS stat FROM "database"."autogen"."haproxy" where "proxy"=some_service ''')
+ .period(period)
+ .every(every)
+ .groupBy('host')
+// Thresholds
+var alert = data
+  |alert()
+    .id('{{ index .Tags "host"}}/haproxy_active_servers')
+    .message('{{ .ID }}:{{ index .Fields "stat" }}')
+    .warn(lambda: "stat" <= warn)
+    .crit(lambda: "stat" <= crit)
+// Alert
+Alert
+  .post('/some_url/followed_by auth-token)
+
+
